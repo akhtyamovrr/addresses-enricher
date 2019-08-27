@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.test.enricher.model.Address;
 import org.test.enricher.model.BuildingData;
 
 import java.util.Comparator;
@@ -12,18 +13,19 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-public class NeighboursEnricher {
-    private final NavigableSet<BuildingData> oddSortedByHouseNumber;
-    private final NavigableSet<BuildingData> evenSortedByHouseNumber;
+public class NeighboursEnricher implements Enricher {
+    private final Comparator<BuildingData> comparator;
 
-    public NeighboursEnricher(Comparator<BuildingData> comparator, Set<BuildingData> housesData) {
-        oddSortedByHouseNumber = new TreeSet<>(comparator);
-        oddSortedByHouseNumber.addAll(housesData.stream().filter(house -> house.houseNumber() % 2 == 1).collect(Collectors.toSet()));
-        evenSortedByHouseNumber = new TreeSet<>(comparator);
-        evenSortedByHouseNumber.addAll(housesData.stream().filter(house -> house.houseNumber() % 2 == 0).collect(Collectors.toSet()));
+    public NeighboursEnricher(Comparator<BuildingData> comparator) {
+        this.comparator = comparator;
     }
 
-    public void enrichAddresses() {
+    public void enrichAddresses(Set<Address> addresses) {
+        final var buildings = addresses.stream().map(BuildingData::new).collect(Collectors.toSet());
+        NavigableSet<BuildingData> oddSortedByHouseNumber = new TreeSet<>(comparator);
+        oddSortedByHouseNumber.addAll(buildings.stream().filter(building -> building.houseNumber() % 2 == 1).collect(Collectors.toSet()));
+        NavigableSet<BuildingData> evenSortedByHouseNumber = new TreeSet<>(comparator);
+        evenSortedByHouseNumber.addAll(buildings.stream().filter(building -> building.houseNumber() % 2 == 0).collect(Collectors.toSet()));
         enrichAddresses(oddSortedByHouseNumber);
         enrichAddresses(evenSortedByHouseNumber);
     }

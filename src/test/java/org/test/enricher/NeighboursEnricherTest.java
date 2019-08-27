@@ -5,7 +5,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import org.test.enricher.model.Address;
 import org.test.enricher.model.AddressByHouseNumberComparator;
-import org.test.enricher.model.BuildingData;
 
 import java.util.Collections;
 import java.util.Set;
@@ -18,33 +17,34 @@ public class NeighboursEnricherTest {
     @Test
     public void testCompeteStreetWithSameZipCode() {
         final var buildings = Sets.newHashSet(
-                new BuildingData(new Address().id(1).latitude(52.1).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("1")),
-                new BuildingData(new Address().id(2).latitude(52.05).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("2")),
-                new BuildingData(new Address().id(3).latitude(52.05).longitude(30.2).country("US").houseNumber("3")),
-                new BuildingData(new Address().id(4).latitude(52.05).longitude(30.2).country("US").houseNumber("4")),
-                new BuildingData(new Address().id(5).latitude(52.05).longitude(30.2).country("US").houseNumber("5")),
-                new BuildingData(new Address().id(6).latitude(52.05).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("6")),
-                new BuildingData(new Address().id(7).latitude(52.05).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("7"))
+                new Address().id(1).latitude(52.1).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("1"),
+                new Address().id(2).latitude(52.05).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("2"),
+                new Address().id(3).latitude(52.05).longitude(30.2).country("US").houseNumber("3"),
+                new Address().id(4).latitude(52.05).longitude(30.2).country("US").houseNumber("4"),
+                new Address().id(5).latitude(52.05).longitude(30.2).country("US").houseNumber("5"),
+                new Address().id(6).latitude(52.05).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("6"),
+                new Address().id(7).latitude(52.05).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("7")
         );
-        new NeighboursEnricher(new AddressByHouseNumberComparator(), buildings).enrichAddresses();
-        assertTrue(buildings.stream().allMatch(buildingData -> "city1".equals(buildingData.address().city()) && "00122".equals(buildingData.address().zipCode())));
+        final var neighboursEnricher = new NeighboursEnricher(new AddressByHouseNumberComparator());
+        neighboursEnricher.enrichAddresses(buildings);
+        assertTrue(buildings.stream().allMatch(buildingData -> "city1".equals(buildingData.city()) && "00122".equals(buildingData.zipCode())));
     }
 
     @Test
     public void testTwoIntervalsWithTwoUnknown() {
         final var buildings = Sets.newHashSet(
-                new BuildingData(new Address().id(1).latitude(52.1).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("1")),
-                new BuildingData(new Address().id(2).latitude(52.05).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("2")),
-                new BuildingData(new Address().id(3).latitude(52.05).longitude(30.2).country("US").houseNumber("3")),
-                new BuildingData(new Address().id(4).latitude(52.05).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("4")),
-                new BuildingData(new Address().id(5).latitude(52.05).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("5")),
-                new BuildingData(new Address().id(6).latitude(52.1).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("6")),
-                new BuildingData(new Address().id(7).latitude(52.05).longitude(30.2).country("US").houseNumber("7")),
-                new BuildingData(new Address().id(8).latitude(52.05).longitude(30.2).country("US").houseNumber("8")),
-                new BuildingData(new Address().id(9).latitude(52.05).longitude(30.2).city("city1").zipCode("00124").country("US").houseNumber("9")),
-                new BuildingData(new Address().id(10).latitude(52.05).longitude(30.2).city("city1").zipCode("00124").country("US").houseNumber("10")),
-                new BuildingData(new Address().id(11).latitude(52.05).longitude(30.2).country("US").houseNumber("11")),
-                new BuildingData(new Address().id(13).latitude(52.05).longitude(30.2).city("city1").zipCode("00124").country("US").houseNumber("13"))
+                new Address().id(1).latitude(52.1).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("1"),
+                new Address().id(2).latitude(52.05).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("2"),
+                new Address().id(3).latitude(52.05).longitude(30.2).country("US").houseNumber("3"),
+                new Address().id(4).latitude(52.05).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("4"),
+                new Address().id(5).latitude(52.05).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("5"),
+                new Address().id(6).latitude(52.1).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("6"),
+                new Address().id(7).latitude(52.05).longitude(30.2).country("US").houseNumber("7"),
+                new Address().id(8).latitude(52.05).longitude(30.2).country("US").houseNumber("8"),
+                new Address().id(9).latitude(52.05).longitude(30.2).city("city1").zipCode("00124").country("US").houseNumber("9"),
+                new Address().id(10).latitude(52.05).longitude(30.2).city("city1").zipCode("00124").country("US").houseNumber("10"),
+                new Address().id(11).latitude(52.05).longitude(30.2).country("US").houseNumber("11"),
+                new Address().id(13).latitude(52.05).longitude(30.2).city("city1").zipCode("00124").country("US").houseNumber("13")
         );
         resolveAndCheckUnknownIds(buildings, Sets.newHashSet(7L, 8L));
     }
@@ -52,11 +52,11 @@ public class NeighboursEnricherTest {
     @Test
     public void testFirstBuildingUnknown() {
         final var buildings = Sets.newHashSet(
-                new BuildingData(new Address().id(1).latitude(52.1).longitude(30.2).country("US").houseNumber("1")),
-                new BuildingData(new Address().id(3).latitude(52.05).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("3")),
-                new BuildingData(new Address().id(5).latitude(52.05).longitude(30.2).country("US").houseNumber("5")),
-                new BuildingData(new Address().id(6).latitude(52.05).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("6")),
-                new BuildingData(new Address().id(7).latitude(52.05).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("7"))
+                new Address().id(1).latitude(52.1).longitude(30.2).country("US").houseNumber("1"),
+                new Address().id(3).latitude(52.05).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("3"),
+                new Address().id(5).latitude(52.05).longitude(30.2).country("US").houseNumber("5"),
+                new Address().id(6).latitude(52.05).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("6"),
+                new Address().id(7).latitude(52.05).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("7")
         );
         resolveAndCheckUnknownIds(buildings, Collections.singleton(1L));
     }
@@ -64,11 +64,11 @@ public class NeighboursEnricherTest {
     @Test
     public void testLastBuildingsUnknown() {
         final var buildings = Sets.newHashSet(
-                new BuildingData(new Address().id(1).latitude(52.1).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("1")),
-                new BuildingData(new Address().id(3).latitude(52.05).longitude(30.2).country("US").houseNumber("3")),
-                new BuildingData(new Address().id(5).latitude(52.05).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("5")),
-                new BuildingData(new Address().id(7).latitude(52.05).longitude(30.2).country("US").houseNumber("7")),
-                new BuildingData(new Address().id(9).latitude(52.05).longitude(30.2).country("US").houseNumber("9"))
+                new Address().id(1).latitude(52.1).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("1"),
+                new Address().id(3).latitude(52.05).longitude(30.2).country("US").houseNumber("3"),
+                new Address().id(5).latitude(52.05).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("5"),
+                new Address().id(7).latitude(52.05).longitude(30.2).country("US").houseNumber("7"),
+                new Address().id(9).latitude(52.05).longitude(30.2).country("US").houseNumber("9")
         );
         resolveAndCheckUnknownIds(buildings, Sets.newHashSet(7L, 9L));
     }
@@ -76,13 +76,13 @@ public class NeighboursEnricherTest {
     @Test
     public void testWithKnownWithoutInterval() {
         final var buildings = Sets.newHashSet(
-                new BuildingData(new Address().id(1).latitude(52.1).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("1")),
-                new BuildingData(new Address().id(3).latitude(52.05).longitude(30.2).country("US").houseNumber("3")),
-                new BuildingData(new Address().id(5).latitude(52.05).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("5")),
-                new BuildingData(new Address().id(7).latitude(52.05).longitude(30.2).city("city1").zipCode("00124").country("US").houseNumber("7")),
-                new BuildingData(new Address().id(9).latitude(52.05).longitude(30.2).country("US").houseNumber("9")),
-                new BuildingData(new Address().id(11).latitude(52.05).longitude(30.2).country("US").houseNumber("11")),
-                new BuildingData(new Address().id(13).latitude(52.05).longitude(30.2).city("city2").zipCode("00126").country("US").houseNumber("13"))
+                new Address().id(1).latitude(52.1).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("1"),
+                new Address().id(3).latitude(52.05).longitude(30.2).country("US").houseNumber("3"),
+                new Address().id(5).latitude(52.05).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("5"),
+                new Address().id(7).latitude(52.05).longitude(30.2).city("city1").zipCode("00124").country("US").houseNumber("7"),
+                new Address().id(9).latitude(52.05).longitude(30.2).country("US").houseNumber("9"),
+                new Address().id(11).latitude(52.05).longitude(30.2).country("US").houseNumber("11"),
+                new Address().id(13).latitude(52.05).longitude(30.2).city("city2").zipCode("00126").country("US").houseNumber("13")
         );
         resolveAndCheckUnknownIds(buildings, Sets.newHashSet(9L, 11L));
     }
@@ -90,25 +90,26 @@ public class NeighboursEnricherTest {
     @Test
     public void testUnknownAfterEachKnown() {
         final var buildings = Sets.newHashSet(
-                new BuildingData(new Address().id(1).latitude(52.1).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("1")),
-                new BuildingData(new Address().id(3).latitude(52.05).longitude(30.2).country("US").houseNumber("3")),
-                new BuildingData(new Address().id(5).latitude(52.05).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("5")),
-                new BuildingData(new Address().id(7).latitude(52.05).longitude(30.2).country("US").houseNumber("7")),
-                new BuildingData(new Address().id(9).latitude(52.05).longitude(30.2).city("city1").zipCode("00124").country("US").houseNumber("9")),
-                new BuildingData(new Address().id(11).latitude(52.05).longitude(30.2).country("US").houseNumber("11")),
-                new BuildingData(new Address().id(13).latitude(52.05).longitude(30.2).city("city2").zipCode("00126").country("US").houseNumber("13")),
-                new BuildingData(new Address().id(15).latitude(52.05).longitude(30.2).country("US").houseNumber("15"))
+                new Address().id(1).latitude(52.1).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("1"),
+                new Address().id(3).latitude(52.05).longitude(30.2).country("US").houseNumber("3"),
+                new Address().id(5).latitude(52.05).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("5"),
+                new Address().id(7).latitude(52.05).longitude(30.2).country("US").houseNumber("7"),
+                new Address().id(9).latitude(52.05).longitude(30.2).city("city1").zipCode("00124").country("US").houseNumber("9"),
+                new Address().id(11).latitude(52.05).longitude(30.2).country("US").houseNumber("11"),
+                new Address().id(13).latitude(52.05).longitude(30.2).city("city2").zipCode("00126").country("US").houseNumber("13"),
+                new Address().id(15).latitude(52.05).longitude(30.2).country("US").houseNumber("15")
         );
         resolveAndCheckUnknownIds(buildings, Sets.newHashSet(7L, 11L, 15L));
     }
 
-    private void resolveAndCheckUnknownIds(Set<BuildingData> buildings, Set<Long> ids) {
-        new NeighboursEnricher(new AddressByHouseNumberComparator(), buildings).enrichAddresses();
+    private void resolveAndCheckUnknownIds(Set<Address> buildings, Set<Long> ids) {
+        final var neighboursEnricher = new NeighboursEnricher(new AddressByHouseNumberComparator());
+        neighboursEnricher.enrichAddresses(buildings);
         final var unresolved = buildings
                 .stream()
-                .filter(buildingData -> StringUtils.isEmpty(buildingData.address().zipCode()))
+                .filter(buildingData -> StringUtils.isEmpty(buildingData.zipCode()))
                 .collect(Collectors.toSet());
         assertEquals(ids.size(), unresolved.size());
-        assertTrue(unresolved.stream().map(buildingData -> buildingData.address().id()).collect(Collectors.toSet()).containsAll(ids));
+        assertTrue(unresolved.stream().map(Address::id).collect(Collectors.toSet()).containsAll(ids));
     }
 }
