@@ -23,6 +23,33 @@ public class TSVAddressesDataSource implements AddressesDataSource {
     }
 
     @Override
+    public Set<Address> findAll() throws Exception {
+        Set<Address> addresses = Sets.newHashSet();
+        for(CSVRecord record: getCsvRecords()) {
+            String street = nullToEmpty(record.get("street")).toUpperCase();
+            String houseNumber = record.get("house_number");
+            if (isEmptyAddress(street, houseNumber)) {
+                continue;
+            }
+            final Address address = createAddressFromRecord(record, street, houseNumber);
+            addresses.add(address);
+        }
+        return addresses;
+    }
+
+    private Address createAddressFromRecord(CSVRecord record, String street, String houseNumber) {
+        final var address = new Address().street(street).houseNumber(houseNumber);
+        address.id(Long.parseLong(record.get("id")));
+        address.latitude(Double.parseDouble(record.get("lat")));
+        address.longitude(Double.parseDouble(record.get("lon")));
+        address.country(record.get("country"));
+        address.state(record.get("state"));
+        address.zipCode(record.get("zip_code"));
+        address.city(nullToEmpty(record.get("city")).toUpperCase());
+        return address;
+    }
+
+    @Override
     public Set<String> findDistinctStreetNames() throws Exception {
         return StreamSupport
                 .stream(getCsvRecords().spliterator(), false)
@@ -34,22 +61,14 @@ public class TSVAddressesDataSource implements AddressesDataSource {
     @Override
     public Set<Address> findByStreetName(String streetName) throws Exception {
         final Set<Address> addresses = Sets.newHashSet();
-        Iterable<CSVRecord> records = getCsvRecords();
-        for (CSVRecord record : records) {
+        for (CSVRecord record : getCsvRecords()) {
             String street = nullToEmpty(record.get("street")).toUpperCase();
             String houseNumber = record.get("house_number");
             if (isEmptyAddress(street, houseNumber) ||
                     !StringUtils.equalsIgnoreCase(streetName, street)) {
                 continue;
             }
-            final var address = new Address().street(street).houseNumber(houseNumber);
-            address.id(Long.parseLong(record.get("id")));
-            address.latitude(Double.parseDouble(record.get("lat")));
-            address.longitude(Double.parseDouble(record.get("lon")));
-            address.country(record.get("country"));
-            address.state(record.get("state"));
-            address.zipCode(record.get("zip_code"));
-            address.city(nullToEmpty(record.get("city")).toUpperCase());
+            final Address address = createAddressFromRecord(record, street, houseNumber);
             addresses.add(address);
         }
         return addresses;

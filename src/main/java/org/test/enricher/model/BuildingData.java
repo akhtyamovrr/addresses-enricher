@@ -21,8 +21,12 @@ public class BuildingData {
         if (StringUtils.isNumeric(houseNumber)) {
             return Integer.parseInt(houseNumber);
         } else {
-            final String[] split = StringUtils.split(houseNumber, "-;");
-            return Integer.parseInt(split[0]);
+            final String[] split = StringUtils.split(houseNumber, "-;# ", 2);
+            var number = split[0].trim();
+            if (!StringUtils.isNumeric(number)) {
+                number = number.replaceAll("[^\\d]", "");
+            }
+            return Integer.parseInt(number);
         }
     }
 }

@@ -8,9 +8,9 @@ import org.test.enricher.model.Address;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class AroundEnricherTest {
+public class SurroundingEnricherTest {
 
-    private AroundEnricherService enricher = new AroundEnricherService();
+    private SurroundingEnricherService enricher = new SurroundingEnricherService();
 
     @Test
     public void testNoneResolved() {
@@ -58,5 +58,17 @@ public class AroundEnricherTest {
         enricher.enrichAddresses(buildings);
         assertEquals(7, buildings.stream().filter(data -> "city2".equalsIgnoreCase(data.city())).count());
         assertEquals(8, buildings.stream().filter(data -> "00122".equalsIgnoreCase(data.zipCode())).count());
+    }
+
+    @Test
+    public void testTwoKnownAddresses() {
+        var buildings = Sets.newHashSet(
+                new Address().id(1).latitude(0.0).longitude(0.0).city("city1").zipCode("00124").country("US").houseNumber("1"),
+                new Address().id(2).latitude(5.0).longitude(10.0).city("city1").zipCode("00124").country("US").houseNumber("2"),
+                new Address().id(3).latitude(10.0).longitude(0.0).country("US").houseNumber("3")
+        );
+        enricher.enrichAddresses(buildings);
+        assertEquals(1, buildings.stream().filter(building -> StringUtils.isEmpty(building.zipCode())).count());
+
     }
 }

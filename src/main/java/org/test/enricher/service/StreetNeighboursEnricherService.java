@@ -1,5 +1,6 @@
 package org.test.enricher.service;
 
+import com.google.common.collect.Sets;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +29,14 @@ public class StreetNeighboursEnricherService implements Enricher {
     }
 
     public void enrichAddresses(Set<Address> addresses) {
-        final var buildings = addresses.stream().map(BuildingData::new).collect(Collectors.toSet());
+        final Set<BuildingData> buildings = Sets.newHashSet();
+        addresses.forEach(address -> {
+            try {
+                buildings.add(new BuildingData(address));
+            } catch (Exception e) {
+                log.error("failed to create building data entity", e);
+            }
+        });
         NavigableSet<BuildingData> oddSortedByHouseNumber = new TreeSet<>(comparator);
         oddSortedByHouseNumber.addAll(buildings.stream().filter(building -> building.houseNumber() % 2 == 1).collect(Collectors.toSet()));
         NavigableSet<BuildingData> evenSortedByHouseNumber = new TreeSet<>(comparator);
@@ -87,9 +95,11 @@ public class StreetNeighboursEnricherService implements Enricher {
                 isSameCity = true;
             }
             while (currentBuilding != null && currentBuilding != to) {
-                currentBuilding.address().zipCode(zipCode);
-                log.info("enriched zip for: {}", currentBuilding.address().id());
-                if (isSameCity) {
+                if (StringUtils.isEmpty(currentBuilding.address().zipCode())) {
+                    currentBuilding.address().zipCode(zipCode);
+                    log.info("enriched zip for: {}", currentBuilding.address().id());
+                }
+                if (isSameCity && StringUtils.isEmpty(currentBuilding.address().city())) {
                     currentBuilding.address().city(city);
                     log.info("enriched city for: {}", currentBuilding.address().id());
                 }

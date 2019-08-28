@@ -15,7 +15,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class AroundEnricherService implements Enricher {
+public class SurroundingEnricherService implements Enricher {
 
     private static final double EPS = 1e-6;
 
