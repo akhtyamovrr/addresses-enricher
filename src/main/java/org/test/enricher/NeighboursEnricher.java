@@ -2,9 +2,11 @@ package org.test.enricher;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.test.enricher.model.Address;
+import org.test.enricher.model.AddressByHouseNumberComparator;
 import org.test.enricher.model.BuildingData;
 
 import java.util.Comparator;
@@ -13,8 +15,13 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class NeighboursEnricher implements Enricher {
-    private final Comparator<BuildingData> comparator;
+    private Comparator<BuildingData> comparator = new AddressByHouseNumberComparator();
+
+    public NeighboursEnricher() {
+
+    }
 
     public NeighboursEnricher(Comparator<BuildingData> comparator) {
         this.comparator = comparator;
@@ -72,9 +79,20 @@ public class NeighboursEnricher implements Enricher {
     private void enrichBuildingsBetween(BuildingData from, BuildingData to, NavigableSet<BuildingData> buildings) {
         if (from != to) {
             BuildingData currentBuilding = buildings.higher(from);
+            final var zipCode = from.address().zipCode();
+            String city = null;
+            boolean isSameCity = false;
+            if (StringUtils.equalsIgnoreCase(from.address().city(), to.address().city())) {
+                city = from.address().city();
+                isSameCity = true;
+            }
             while (currentBuilding != null && currentBuilding != to) {
-                currentBuilding.address().zipCode(from.address().zipCode());
-                currentBuilding.address().city(from.address().city());
+                currentBuilding.address().zipCode(zipCode);
+                log.info("enriched zip for: {}", currentBuilding.address().id());
+                if (isSameCity) {
+                    currentBuilding.address().city(city);
+                    log.info("enriched city for: {}", currentBuilding.address().id());
+                }
                 currentBuilding = buildings.higher(currentBuilding);
             }
         }
