@@ -13,13 +13,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static com.google.common.base.Strings.nullToEmpty;
+
 public class TSVAddressesDataSource implements AddressesDataSource {
     private final String filePath;
 
     public TSVAddressesDataSource(String filePath) {
         this.filePath = filePath;
     }
-
 
     @Override
     public Set<String> findDistinctStreetNames() throws Exception {
@@ -35,7 +36,7 @@ public class TSVAddressesDataSource implements AddressesDataSource {
         final Set<Address> addresses = Sets.newHashSet();
         Iterable<CSVRecord> records = getCsvRecords();
         for (CSVRecord record : records) {
-            String street = record.get("street");
+            String street = nullToEmpty(record.get("street")).toUpperCase();
             String houseNumber = record.get("house_number");
             if (isEmptyAddress(street, houseNumber) ||
                     !StringUtils.equalsIgnoreCase(streetName, street)) {
@@ -48,7 +49,7 @@ public class TSVAddressesDataSource implements AddressesDataSource {
             address.country(record.get("country"));
             address.state(record.get("state"));
             address.zipCode(record.get("zip_code"));
-            address.city(record.get("city"));
+            address.city(nullToEmpty(record.get("city")).toUpperCase());
             addresses.add(address);
         }
         return addresses;
@@ -68,7 +69,7 @@ public class TSVAddressesDataSource implements AddressesDataSource {
             if (lat < minLatitude || lat > maxLatitude || lon < minLongitude || lon > maxLongitude) {
                 continue;
             }
-            String street = record.get("street");
+            String street = nullToEmpty(record.get("street")).toUpperCase();
             String houseNumber = record.get("house_number");
             if (isEmptyAddress(street, houseNumber)) {
                 continue;
@@ -78,7 +79,7 @@ public class TSVAddressesDataSource implements AddressesDataSource {
             address.country(record.get("country"));
             address.state(record.get("state"));
             address.zipCode(record.get("zip_code"));
-            address.city(record.get("city"));
+            address.city(nullToEmpty(record.get("city")).toUpperCase());
             addresses.add(address);
         }
         return addresses;
