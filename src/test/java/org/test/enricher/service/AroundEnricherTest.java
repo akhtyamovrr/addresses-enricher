@@ -1,4 +1,4 @@
-package org.test.enricher;
+package org.test.enricher.service;
 
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;

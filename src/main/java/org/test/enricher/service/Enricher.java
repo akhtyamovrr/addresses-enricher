@@ -1,4 +1,4 @@
-package org.test.enricher;
+package org.test.enricher.service;
 
 import org.test.enricher.model.Address;
 

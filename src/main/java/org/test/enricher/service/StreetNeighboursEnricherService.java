@@ -1,4 +1,4 @@
-package org.test.enricher;
+package org.test.enricher.service;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
