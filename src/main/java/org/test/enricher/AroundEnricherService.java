@@ -20,26 +20,36 @@ public class AroundEnricherService implements Enricher {
     private static final double EPS = 1e-6;
 
     public void enrichAddresses(Set<Address> addressesAround) {
-        Set<Address> unknownAddresses = addressesAround
+        Set<Address> unknownZipAddresses = addressesAround
                 .stream()
-                .filter(address -> StringUtils.isEmpty(address.zipCode()) || StringUtils.isEmpty(address.city()))
+                .filter(address -> StringUtils.isEmpty(address.zipCode()))
                 .collect(Collectors.toSet());
-        Set<Address> knownAddresses = Sets.newHashSet(CollectionUtils.subtract(addressesAround, unknownAddresses));
-        if (CollectionUtils.isEmpty(unknownAddresses)) {
+        Set<Address> unknownCityAddresses = addressesAround
+                .stream()
+                .filter(address -> StringUtils.isEmpty(address.city()))
+                .collect(Collectors.toSet());
+
+        Set<Address> knownAddresses = Sets.newHashSet(CollectionUtils.subtract(addressesAround, unknownZipAddresses));
+        if (CollectionUtils.isEmpty(unknownZipAddresses) && CollectionUtils.isEmpty(unknownCityAddresses)) {
             return;
         }
         final HashSet<Triangle> zipCodeTriangles = Sets.newHashSet();
         final HashSet<Triangle> cityTriangles = Sets.newHashSet();
         generateZipAndCityTriangles(knownAddresses, zipCodeTriangles, cityTriangles);
-        for (Address address : unknownAddresses) {
+        for (Address address : unknownZipAddresses) {
             final var toResolve = new Point(address);
             if (resolveZip(zipCodeTriangles, toResolve)) {
                 log.info("resolved zip for building: {}", address.id());
             }
-            if (resolveCity(cityTriangles, toResolve)) {
+            if (unknownCityAddresses.contains(address) && resolveCity(cityTriangles, toResolve)) {
+                unknownCityAddresses.remove(address);
                 log.info("resolved city for building: {}", address.id());
             }
-
+        }
+        for (Address address : unknownCityAddresses) {
+            if (resolveCity(cityTriangles, new Point(address))) {
+                log.info("resolved city for building: {}", address.id());
+            }
         }
     }
 
