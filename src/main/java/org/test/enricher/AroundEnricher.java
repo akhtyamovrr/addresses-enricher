@@ -17,6 +17,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class AroundEnricher implements Enricher {
 
+    private static final double EPS = 1e-6;
+
     public void enrichAddresses(Set<Address> addressesAround) {
         Set<Address> unknownAddresses = addressesAround
                 .stream()
@@ -109,7 +111,7 @@ public class AroundEnricher implements Enricher {
         double pab = area(a, b, pointToCheck);
 
         /* Check if sum of A1, A2 and a3 is same as A */
-        return abc == pbc + pac + pab;
+        return Math.abs(pbc + pac + pab - abc) < EPS;
     }
 
     private double area(Point p1, Point p2, Point p3) {
