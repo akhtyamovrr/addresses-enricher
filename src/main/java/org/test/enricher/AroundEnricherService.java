@@ -15,14 +15,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class AroundEnricher implements Enricher {
+public class AroundEnricherService implements Enricher {
 
     private static final double EPS = 1e-6;
 
     public void enrichAddresses(Set<Address> addressesAround) {
         Set<Address> unknownAddresses = addressesAround
                 .stream()
-                .filter(address -> StringUtils.isEmpty(address.zipCode()))
+                .filter(address -> StringUtils.isEmpty(address.zipCode()) || StringUtils.isEmpty(address.city()))
                 .collect(Collectors.toSet());
         Set<Address> knownAddresses = Sets.newHashSet(CollectionUtils.subtract(addressesAround, unknownAddresses));
         if (CollectionUtils.isEmpty(unknownAddresses)) {

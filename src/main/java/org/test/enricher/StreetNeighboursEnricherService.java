@@ -16,14 +16,14 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class NeighboursEnricher implements Enricher {
+public class StreetNeighboursEnricherService implements Enricher {
     private Comparator<BuildingData> comparator = new AddressByHouseNumberComparator();
 
-    public NeighboursEnricher() {
+    public StreetNeighboursEnricherService() {
 
     }
 
-    public NeighboursEnricher(Comparator<BuildingData> comparator) {
+    public StreetNeighboursEnricherService(Comparator<BuildingData> comparator) {
         this.comparator = comparator;
     }
 

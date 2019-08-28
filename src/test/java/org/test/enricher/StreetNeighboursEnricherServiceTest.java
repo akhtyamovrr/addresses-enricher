@@ -4,7 +4,6 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import org.test.enricher.model.Address;
-import org.test.enricher.model.AddressByHouseNumberComparator;
 
 import java.util.Collections;
 import java.util.Set;
@@ -13,7 +12,10 @@ import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class NeighboursEnricherTest {
+public class StreetNeighboursEnricherServiceTest {
+
+    private StreetNeighboursEnricherService neighboursEnricher = new StreetNeighboursEnricherService();
+
     @Test
     public void testCompeteStreetWithSameZipCode() {
         final var buildings = Sets.newHashSet(
@@ -25,7 +27,6 @@ public class NeighboursEnricherTest {
                 new Address().id(6).latitude(52.05).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("6"),
                 new Address().id(7).latitude(52.05).longitude(30.2).city("city1").zipCode("00122").country("US").houseNumber("7")
         );
-        final var neighboursEnricher = new NeighboursEnricher(new AddressByHouseNumberComparator());
         neighboursEnricher.enrichAddresses(buildings);
         assertTrue(buildings.stream().allMatch(buildingData -> "city1".equals(buildingData.city()) && "00122".equals(buildingData.zipCode())));
     }
@@ -103,7 +104,6 @@ public class NeighboursEnricherTest {
     }
 
     private void resolveAndCheckUnknownIds(Set<Address> buildings, Set<Long> ids) {
-        final var neighboursEnricher = new NeighboursEnricher(new AddressByHouseNumberComparator());
         neighboursEnricher.enrichAddresses(buildings);
         final var unresolved = buildings
                 .stream()
