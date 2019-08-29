@@ -12,6 +12,17 @@ repositories {
     mavenCentral()
 }
 
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'org.test.enricher.Main'
+        )
+    }
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
 dependencies {
     compile group: 'org.projectlombok', name: 'lombok', version: '1.18.8'
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.9'
