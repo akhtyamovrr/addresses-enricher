@@ -10,6 +10,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -17,6 +18,7 @@ import static com.google.common.base.Strings.nullToEmpty;
 
 public class TSVAddressesDataSource implements AddressesDataSource {
     private final String filePath;
+    private ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
     public TSVAddressesDataSource(String filePath) {
         this.filePath = filePath;
@@ -109,9 +111,15 @@ public class TSVAddressesDataSource implements AddressesDataSource {
     }
 
     private Iterable<CSVRecord> getCsvRecords() throws IOException {
-        Reader in = new FileReader(filePath);
-        return CSVFormat.TDF
-                .withHeader("id", "lat", "lon", "country", "state", "zip_code", "city", "street", "house_number")
-                .parse(in);
+        try {
+            lock.readLock().lock();
+            Reader in = new FileReader(filePath);
+            return CSVFormat.TDF
+                    .withHeader("id", "lat", "lon", "country", "state", "zip_code", "city", "street", "house_number")
+                    .parse(in);
+        } finally {
+            lock.readLock().unlock();
+        }
+
     }
 }

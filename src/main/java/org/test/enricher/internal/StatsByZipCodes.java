@@ -9,7 +9,9 @@ import java.util.stream.Collectors;
 // for internal usage. Shows how many same zips in file in format {zip_code=count}
 public class StatsByZipCodes {
     public static void main(String[] args) throws Exception {
-        final var tsvAddressesDataSource = new TSVAddressesDataSource("result.tsv");
+//        String filename = "/Users/rahtyamov/IdeaProjects/addresses-enricher/build/libs/result11.tsv"
+        String filename = "result.tsv";
+        final var tsvAddressesDataSource = new TSVAddressesDataSource(filename);
         Map<String, Long> counts =
                 tsvAddressesDataSource.findAll().stream().map(Address::zipCode).collect(Collectors.groupingBy(e -> e, Collectors.counting()));
         System.out.println(counts);
