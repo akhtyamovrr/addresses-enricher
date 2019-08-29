@@ -19,6 +19,10 @@ public class SurroundingEnricherService implements Enricher {
 
     private static final double EPS = 1e-6;
 
+    /**
+     * Checks
+     * @param addressesAround
+     */
     public void enrichAddresses(Set<Address> addressesAround) {
         Set<Address> unknownZipAddresses = addressesAround
                 .stream()

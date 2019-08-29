@@ -16,6 +16,10 @@ import java.util.stream.Collectors;
 public class AddressesEnricherExecutor {
     private final AddressesDataSource dataSource;
     private final AddressWriter writer;
+    private final double searchAroundMeters;
+
+    // One degree is about 111km
+    private static final double METERS_IN_DEGREE = 111_000;
 
     public void execute() {
         try {
@@ -27,7 +31,7 @@ public class AddressesEnricherExecutor {
                 final var aroundEnricherService = new SurroundingEnricherService();
                 var unresolved = addresses.stream().filter(address -> StringUtils.isEmpty(address.zipCode())).collect(Collectors.toSet());
                 for (Address address : unresolved) {
-                    final var area = dataSource.findSquareByCoordinates(address.latitude(), address.longitude(), 0.00045);
+                    final var area = dataSource.findSquareByCoordinates(address.latitude(), address.longitude(), searchAroundMeters / METERS_IN_DEGREE);
                     aroundEnricherService.enrichAddresses(area);
                 }
                 writer.write(addresses);
