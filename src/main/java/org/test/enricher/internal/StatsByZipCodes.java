@@ -6,6 +6,7 @@ import org.test.enricher.model.Address;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+// for internal usage. Shows how many same zips in file in format {zip_code=count}
 public class StatsByZipCodes {
     public static void main(String[] args) throws Exception {
         final var tsvAddressesDataSource = new TSVAddressesDataSource("result.tsv");

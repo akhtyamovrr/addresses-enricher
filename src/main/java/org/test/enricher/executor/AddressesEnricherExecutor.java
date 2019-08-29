@@ -24,19 +24,22 @@ public class AddressesEnricherExecutor {
     public void execute() {
         try {
             final var distinctStreetNames = dataSource.findDistinctStreetNames();
-            for (String street : distinctStreetNames) {
-                final var addresses = dataSource.findByStreetName(street);
-                final var streetNeighboursEnricherService = new StreetNeighboursEnricherService();
-                streetNeighboursEnricherService.enrichAddresses(addresses);
-                final var aroundEnricherService = new SurroundingEnricherService();
-                var unresolved = addresses.stream().filter(address -> StringUtils.isEmpty(address.zipCode())).collect(Collectors.toSet());
-                for (Address address : unresolved) {
-                    final var area = dataSource.findSquareByCoordinates(address.latitude(), address.longitude(), searchAroundMeters / METERS_IN_DEGREE);
-                    aroundEnricherService.enrichAddresses(area);
+            distinctStreetNames.parallelStream().forEach(street -> {
+                try {
+                    final var addresses = dataSource.findByStreetName(street);
+                    final var streetNeighboursEnricherService = new StreetNeighboursEnricherService();
+                    streetNeighboursEnricherService.enrichAddresses(addresses);
+                    final var aroundEnricherService = new SurroundingEnricherService();
+                    var unresolved = addresses.stream().filter(address -> StringUtils.isEmpty(address.zipCode())).collect(Collectors.toSet());
+                    for (Address address : unresolved) {
+                        final var area = dataSource.findSquareByCoordinates(address.latitude(), address.longitude(), searchAroundMeters / METERS_IN_DEGREE);
+                        aroundEnricherService.enrichAddresses(area);
+                    }
+                    writer.write(addresses);
+                } catch (Exception e) {
+                    log.error("failed to process {}", street, e);
                 }
-                writer.write(addresses);
-            }
-
+            });
         } catch (Throwable t) {
             log.error("failed to process data", t);
         }
