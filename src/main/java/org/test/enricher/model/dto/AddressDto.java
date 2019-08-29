@@ -1,17 +1,18 @@
-package org.test.enricher.model;
+package org.test.enricher.model.dto;
 
 import com.google.common.base.Preconditions;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
+import org.test.enricher.model.Address;
 
 @Data
 @Accessors(fluent = true, chain = true)
-public class BuildingData {
+public class AddressDto {
     private Address address;
     private int houseNumber;
 
-    public BuildingData(Address address) {
+    public AddressDto(Address address) {
         this.address = address;
         houseNumber = parseHouseNumber(address.houseNumber());
     }

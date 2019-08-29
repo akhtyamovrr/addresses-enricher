@@ -1,55 +1,33 @@
 package org.test.enricher.service;
 
-import com.google.common.collect.Sets;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.test.enricher.model.Address;
-import org.test.enricher.model.AddressByHouseNumberComparator;
-import org.test.enricher.model.BuildingData;
+import org.test.enricher.model.dto.AddressDto;
+import org.test.enricher.utils.AddressDtoUtils;
 
-import java.util.Comparator;
 import java.util.NavigableSet;
 import java.util.Set;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 @Slf4j
 public class StreetNeighboursEnricherService implements Enricher {
-    private Comparator<BuildingData> comparator = new AddressByHouseNumberComparator();
-
-    public StreetNeighboursEnricherService() {
-
-    }
-
-    public StreetNeighboursEnricherService(Comparator<BuildingData> comparator) {
-        this.comparator = comparator;
-    }
 
     public void enrichAddresses(Set<Address> addresses) {
-        final Set<BuildingData> buildings = Sets.newHashSet();
-        addresses.forEach(address -> {
-            try {
-                buildings.add(new BuildingData(address));
-            } catch (Exception e) {
-                log.error("failed to create building data entity", e);
-            }
-        });
-        NavigableSet<BuildingData> oddSortedByHouseNumber = new TreeSet<>(comparator);
-        oddSortedByHouseNumber.addAll(buildings.stream().filter(building -> building.houseNumber() % 2 == 1).collect(Collectors.toSet()));
-        NavigableSet<BuildingData> evenSortedByHouseNumber = new TreeSet<>(comparator);
-        evenSortedByHouseNumber.addAll(buildings.stream().filter(building -> building.houseNumber() % 2 == 0).collect(Collectors.toSet()));
+        final Set<AddressDto> buildings = AddressDtoUtils.transformAddresses(addresses);
+        NavigableSet<AddressDto> oddSortedByHouseNumber = AddressDtoUtils.oddAddresses(buildings);
+        NavigableSet<AddressDto> evenSortedByHouseNumber = AddressDtoUtils.evenAddresses(buildings);
         enrichAddresses(oddSortedByHouseNumber);
         enrichAddresses(evenSortedByHouseNumber);
     }
 
-    private void enrichAddresses(NavigableSet<BuildingData> buildings) {
+    private void enrichAddresses(NavigableSet<AddressDto> buildings) {
         if (CollectionUtils.isEmpty(buildings)) {
             return;
         }
-        BuildingData leftKnownData;
+        AddressDto leftKnownData;
         leftKnownData = getFirstKnownBuilding(buildings);
         if (leftKnownData == null) {
             return;
@@ -63,8 +41,8 @@ public class StreetNeighboursEnricherService implements Enricher {
         } while (leftKnownData != null);
     }
 
-    private BuildingData getFirstKnownBuilding(NavigableSet<BuildingData> buildings) {
-        BuildingData firstKnownBuilding;
+    private AddressDto getFirstKnownBuilding(NavigableSet<AddressDto> buildings) {
+        AddressDto firstKnownBuilding;
         var currentBuilding = buildings.first();
         if (StringUtils.isNoneEmpty(currentBuilding.address().zipCode())) {
             firstKnownBuilding = currentBuilding;
@@ -74,9 +52,9 @@ public class StreetNeighboursEnricherService implements Enricher {
         return firstKnownBuilding;
     }
 
-    private ZipCodeInterval findZipCodeInterval(BuildingData from, NavigableSet<BuildingData> buildings) {
-        BuildingData currentBuilding = from;
-        BuildingData to;
+    private ZipCodeInterval findZipCodeInterval(AddressDto from, NavigableSet<AddressDto> buildings) {
+        AddressDto currentBuilding = from;
+        AddressDto to;
         do {
             to = currentBuilding;
             currentBuilding = findHigherKnown(currentBuilding, buildings);
@@ -84,9 +62,9 @@ public class StreetNeighboursEnricherService implements Enricher {
         return new ZipCodeInterval(from, to, currentBuilding);
     }
 
-    private void enrichBuildingsBetween(BuildingData from, BuildingData to, NavigableSet<BuildingData> buildings) {
+    private void enrichBuildingsBetween(AddressDto from, AddressDto to, NavigableSet<AddressDto> buildings) {
         if (from != to) {
-            BuildingData currentBuilding = buildings.higher(from);
+            AddressDto currentBuilding = buildings.higher(from);
             final var zipCode = from.address().zipCode();
             String city = null;
             boolean isSameCity = false;
@@ -108,11 +86,11 @@ public class StreetNeighboursEnricherService implements Enricher {
         }
     }
 
-    private BuildingData findHigherKnown(BuildingData building, NavigableSet<BuildingData> buildings) {
+    private AddressDto findHigherKnown(AddressDto building, NavigableSet<AddressDto> buildings) {
         if (building == null) {
             return null;
         }
-        BuildingData currentBuilding = buildings.higher(building);
+        AddressDto currentBuilding = buildings.higher(building);
         while (currentBuilding != null && StringUtils.isEmpty(currentBuilding.address().zipCode())) {
             currentBuilding = buildings.higher(currentBuilding);
         }
@@ -122,8 +100,8 @@ public class StreetNeighboursEnricherService implements Enricher {
     @AllArgsConstructor
     @Getter
     private class ZipCodeInterval {
-        private BuildingData from;
-        private BuildingData to;
-        private BuildingData nextKnownBuilding;
+        private AddressDto from;
+        private AddressDto to;
+        private AddressDto nextKnownBuilding;
     }
 }
