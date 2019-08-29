@@ -34,7 +34,6 @@ public class AddressesEnricherExecutor {
                 try {
                     final var addresses = dataSource.findByStreetName(street);
                     final var addressGroups = streetSplitService.split(addresses, maxDistanceToSameStreetNeighboursMeters / METERS_IN_DEGREE);
-                    log.info("splits: {}", addressGroups.size());
                     for (Set<Address> addressGroup: addressGroups) {
                         streetNeighboursEnricherService.enrichAddresses(addressGroup);
                         var unresolved = addressGroup.stream().filter(address -> StringUtils.isEmpty(address.zipCode())).collect(Collectors.toSet());
